@@ -5,17 +5,27 @@ import (
 	"fmt"
 	"github.com/valyala/fasthttp"
 	"gomod.usaken.org/ic/config"
+	"gomod.usaken.org/ic/monitor"
 	"gomod.usaken.org/ic/spine"
 	"time"
 )
 
 func Run(c *config.Config) error {
-	handler := &FastHTTPApiHandler{serverName: c.ServerName}
+	spine.SystemGroup.Add(1)
+	defer spine.SystemGroup.Done()
+
+	handler := &FastHTTPApiHandler{
+		serverName: c.ServerName,
+		logger:     monitor.New(),
+	}
 	server := fasthttp.Server{
 		Handler: handler.HandleFastHTTP,
 	}
 
 	go func() {
+		spine.SystemGroup.Add(1)
+		defer spine.SystemGroup.Done()
+
 		reason := <-spine.C.Done()
 		fmt.Printf("api server shutdown started due to %s\n", reason)
 		// 5분은 휴리스틱하게 정해진 시간이다.
@@ -27,17 +37,23 @@ func Run(c *config.Config) error {
 		if err != nil {
 			fmt.Printf("api server shutdown failed %e\n", err)
 		}
+		fmt.Printf("api server successfully shutdown\n")
 	}()
 
-	spine.SystemGroup.Add(1)
-	defer spine.SystemGroup.Done()
+	go func() {
+		spine.SystemGroup.Add(1)
+		defer spine.SystemGroup.Done()
+
+		err := server.ListenAndServe(c.ServerAddr)
+		if err != nil {
+			err = fmt.Errorf("api server run failed: %e", err)
+			spine.Cancel(err)
+			fmt.Printf("api server error: %e", err)
+		}
+		fmt.Printf("api server shutdown end\n")
+	}()
+
 	fmt.Printf("api server running... \n")
 
-	err := server.ListenAndServe(c.ServerAddr)
-	if err != nil {
-		err = fmt.Errorf("api server run failed: %e", err)
-		spine.Cancel(err)
-		fmt.Printf("api server error: %e", err)
-	}
-	return err
+	return nil
 }

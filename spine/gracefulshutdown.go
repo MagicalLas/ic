@@ -12,12 +12,12 @@ var C, Cancel = context.WithCancelCause(context.Background())
 
 var SystemGroup sync.WaitGroup
 
-func init() {
-	stop := make(chan os.Signal, 1)
-	signal.Notify(stop, os.Interrupt, syscall.SIGTERM)
+func WaitUntilSystemShutdown() {
+	stop := make(chan os.Signal)
 
-	go func() {
-		<-stop
-		Cancel(nil)
-	}()
+	signal.Notify(stop, os.Interrupt, os.Kill, syscall.SIGINT, syscall.SIGTERM)
+	<-stop
+
+	Cancel(nil)
+	SystemGroup.Wait()
 }

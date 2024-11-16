@@ -2,12 +2,13 @@ package api
 
 import (
 	"bytes"
-	"fmt"
 	"github.com/valyala/fasthttp"
+	"gomod.usaken.org/ic/monitor"
 )
 
 type FastHTTPApiHandler struct {
 	serverName string
+	logger     monitor.Logger
 }
 
 func (h *FastHTTPApiHandler) HandleFastHTTP(ctx *fasthttp.RequestCtx) {
@@ -15,6 +16,7 @@ func (h *FastHTTPApiHandler) HandleFastHTTP(ctx *fasthttp.RequestCtx) {
 	//  fiber가 갖고있는 overhead를 가져오고싶지 않았기에
 	//  일부 기능을 직접 대충 구현합니다.
 	//  추후에는 fiber로 옮길 예정입니다.
+	//h.logger.Info("request on")
 
 	path := ctx.Path()
 	if bytes.HasPrefix(path, contentsPrefix) {
@@ -37,11 +39,11 @@ var impressionPrefix = []byte("imp")
 var clickPrefix = []byte("click")
 
 func (h *FastHTTPApiHandler) IncreaseImpression(ctx *fasthttp.RequestCtx) {
-	fmt.Printf("increase imp\n")
+	//h.logger.Info("increase imp\n")
 }
 
 func (h *FastHTTPApiHandler) IncreaseClick(ctx *fasthttp.RequestCtx) {
-	fmt.Printf("increase click\n")
+	//h.logger.Info("increase click\n")
 }
 
 func (h *FastHTTPApiHandler) GetContents(ctx *fasthttp.RequestCtx) {
