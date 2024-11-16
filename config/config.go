@@ -14,7 +14,7 @@ func Load() (*Config, error) {
 	c := &Config{
 		ServerAddr:             ":8081",
 		ServerName:             "ic",
-		Concurrency:            2,
+		Concurrency:            10,
 		EnableProfiling:        true,
 		EnablePrometheusMetric: true,
 	}

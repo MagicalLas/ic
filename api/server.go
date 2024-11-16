@@ -19,7 +19,8 @@ func Run(c *config.Config) error {
 		logger:     monitor.New(),
 	}
 	server := fasthttp.Server{
-		Handler: handler.HandleFastHTTP,
+		Handler:     handler.HandleFastHTTP,
+		Concurrency: 128,
 	}
 
 	go func() {
